@@ -74,8 +74,23 @@ async function initializeApp() {
         try {
             const ticket = await db('tickets').where({ id: req.params.id }).first();
             if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-            res.json(ticket);
+            
+            // Convert database field names to camelCase for frontend
+            const formattedTicket = {
+                ...ticket,
+                amountPaid: ticket.amount_paid,
+                customPrice: ticket.custom_price,
+                discountAmount: ticket.discount_amount,
+                discountReason: ticket.discount_reason,
+                checkedIn: ticket.checked_in,
+                createdAt: ticket.created_at,
+                ticketType: ticket.ticket_type,
+                standardPrice: ticket.standard_price,
+                qrCode: ticket.qr_code
+            };
+            res.json(formattedTicket);
         } catch (error) {
+            console.error('Failed to get ticket:', error);
             res.status(500).json({ error: 'Failed to get ticket' });
         }
     });
