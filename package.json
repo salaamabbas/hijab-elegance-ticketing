@@ -20,7 +20,8 @@
     "qrcode": "^1.5.3",
     "uuid": "^9.0.1",
     "pg": "^8.11.3",
-    "knex": "^3.1.0"
+    "knex": "^3.1.0",
+    "connect-pg-simple": "^9.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

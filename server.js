@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const { Parser } = require('json2csv');
 const { db, setupSchema } = require('./database');
+const pgSession = require('connect-pg-simple')(session);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,10 +17,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({
-    secret: 'hijab-elegance-secret-2025',
+    store: new pgSession({
+        pool: db.client.pool,
+        tableName: 'user_sessions'
+    }),
+    secret: process.env.SESSION_SECRET || 'hijab-elegance-secret-2025',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === 'production', maxAge: 24 * 60 * 60 * 1000 } // 24 hours
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    }
 }));
 
 // Use environment variable for password, with a default for local development
