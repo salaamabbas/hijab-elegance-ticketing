@@ -48,7 +48,13 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'log
 app.post('/login', (req, res) => {
     if (bcrypt.compareSync(req.body.password, ADMIN_PASSWORD_HASH)) {
         req.session.authenticated = true;
-        res.json({ success: true });
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.status(500).json({ success: false, message: 'Login failed due to a server error.' });
+            }
+            res.json({ success: true });
+        });
     } else {
         res.json({ success: false, message: 'Invalid password' });
     }
