@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(session({
     store: new pgSession({
-        pool: db.client.pool,
+        conString: process.env.DATABASE_URL,
         tableName: 'user_sessions'
     }),
     secret: process.env.SESSION_SECRET || 'hijab-elegance-secret-2025',
