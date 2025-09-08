@@ -93,7 +93,7 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    window.location.href = '/dashboard';
+                    return window.location.assign('/dashboard');
                 } else {
                     const errorText = errorDiv.querySelector('.error-text');
                     errorText.textContent = result.message || 'Invalid password';
