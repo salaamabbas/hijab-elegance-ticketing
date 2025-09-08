@@ -7,7 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const { Parser } = require('json2csv');
 const { db, setupSchema } = require('./database');
-const pgSession = require('connect-pg-simple')(session);
+// Note: connect-pg-simple removed as we're using in-memory sessions
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -166,7 +166,20 @@ async function initializeApp() {
             };
 
             const [updatedTicket] = await db('tickets').where({ id }).update(updatedData).returning('*');
-            res.json(updatedTicket);
+            // Convert database field names to camelCase for frontend
+            const formattedTicket = {
+                ...updatedTicket,
+                amountPaid: updatedTicket.amount_paid,
+                customPrice: updatedTicket.custom_price,
+                discountAmount: updatedTicket.discount_amount,
+                discountReason: updatedTicket.discount_reason,
+                checkedIn: updatedTicket.checked_in,
+                createdAt: updatedTicket.created_at,
+                ticketType: updatedTicket.ticket_type,
+                standardPrice: updatedTicket.standard_price,
+                qrCode: updatedTicket.qr_code
+            };
+            res.json(formattedTicket);
         } catch (error) {
             console.error('Failed to update ticket:', error);
             res.status(500).json({ error: 'Failed to update ticket' });
@@ -184,37 +197,93 @@ async function initializeApp() {
     });
 
     // Expenses API
-    app.get('/api/expenses', requireAuth, async (req, res) => res.json(await db('expenses').orderBy('date', 'desc')));
+    app.get('/api/expenses', requireAuth, async (req, res) => {
+        try {
+            const expenses = await db('expenses').orderBy('date', 'desc');
+            res.json(expenses);
+        } catch (error) {
+            console.error('Failed to get expenses:', error);
+            res.status(500).json({ error: 'Failed to get expenses' });
+        }
+    });
+    
     app.post('/api/expenses', requireAuth, async (req, res) => {
-        const { category, description, amount, date, notes } = req.body;
-        const [newExpense] = await db('expenses').insert({ id: uuidv4(), category, description, amount, date, notes: notes || '' }).returning('*');
-        res.status(201).json(newExpense);
+        try {
+            const { category, description, amount, date, notes } = req.body;
+            const [newExpense] = await db('expenses').insert({ id: uuidv4(), category, description, amount, date, notes: notes || '' }).returning('*');
+            res.status(201).json(newExpense);
+        } catch (error) {
+            console.error('Failed to create expense:', error);
+            res.status(500).json({ error: 'Failed to create expense' });
+        }
     });
+    
     app.put('/api/expenses/:id', requireAuth, async (req, res) => {
-        const { category, description, amount, date, notes } = req.body;
-        const [updated] = await db('expenses').where({ id: req.params.id }).update({ category, description, amount, date, notes: notes || '' }).returning('*');
-        res.json(updated);
+        try {
+            const { category, description, amount, date, notes } = req.body;
+            const [updated] = await db('expenses').where({ id: req.params.id }).update({ category, description, amount, date, notes: notes || '' }).returning('*');
+            if (!updated) return res.status(404).json({ error: 'Expense not found' });
+            res.json(updated);
+        } catch (error) {
+            console.error('Failed to update expense:', error);
+            res.status(500).json({ error: 'Failed to update expense' });
+        }
     });
+    
     app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
-        await db('expenses').where({ id: req.params.id }).del();
-        res.json({ success: true });
+        try {
+            const count = await db('expenses').where({ id: req.params.id }).del();
+            if (count === 0) return res.status(404).json({ error: 'Expense not found' });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Failed to delete expense:', error);
+            res.status(500).json({ error: 'Failed to delete expense' });
+        }
     });
 
     // Sponsorships API
-    app.get('/api/sponsorships', requireAuth, async (req, res) => res.json(await db('sponsorships').orderBy('created_at', 'desc')));
+    app.get('/api/sponsorships', requireAuth, async (req, res) => {
+        try {
+            const sponsorships = await db('sponsorships').orderBy('created_at', 'desc');
+            res.json(sponsorships);
+        } catch (error) {
+            console.error('Failed to get sponsorships:', error);
+            res.status(500).json({ error: 'Failed to get sponsorships' });
+        }
+    });
+    
     app.post('/api/sponsorships', requireAuth, async (req, res) => {
-        const { name, amount, contact, notes } = req.body;
-        const [newSponsorship] = await db('sponsorships').insert({ id: uuidv4(), name, amount, contact: contact || '', notes: notes || '' }).returning('*');
-        res.status(201).json(newSponsorship);
+        try {
+            const { name, amount, contact, notes } = req.body;
+            const [newSponsorship] = await db('sponsorships').insert({ id: uuidv4(), name, amount, contact: contact || '', notes: notes || '' }).returning('*');
+            res.status(201).json(newSponsorship);
+        } catch (error) {
+            console.error('Failed to create sponsorship:', error);
+            res.status(500).json({ error: 'Failed to create sponsorship' });
+        }
     });
+    
     app.put('/api/sponsorships/:id', requireAuth, async (req, res) => {
-        const { name, amount, contact, notes } = req.body;
-        const [updated] = await db('sponsorships').where({ id: req.params.id }).update({ name, amount, contact: contact || '', notes: notes || '' }).returning('*');
-        res.json(updated);
+        try {
+            const { name, amount, contact, notes } = req.body;
+            const [updated] = await db('sponsorships').where({ id: req.params.id }).update({ name, amount, contact: contact || '', notes: notes || '' }).returning('*');
+            if (!updated) return res.status(404).json({ error: 'Sponsorship not found' });
+            res.json(updated);
+        } catch (error) {
+            console.error('Failed to update sponsorship:', error);
+            res.status(500).json({ error: 'Failed to update sponsorship' });
+        }
     });
+    
     app.delete('/api/sponsorships/:id', requireAuth, async (req, res) => {
-        await db('sponsorships').where({ id: req.params.id }).del();
-        res.json({ success: true });
+        try {
+            const count = await db('sponsorships').where({ id: req.params.id }).del();
+            if (count === 0) return res.status(404).json({ error: 'Sponsorship not found' });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Failed to delete sponsorship:', error);
+            res.status(500).json({ error: 'Failed to delete sponsorship' });
+        }
     });
 
     // Financial Summary API

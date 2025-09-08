@@ -58,15 +58,7 @@ async function setupSchema() {
             console.log('Created "sponsorships" table');
         }
 
-        const sessionsExists = await db.schema.hasTable('user_sessions');
-        if (!sessionsExists) {
-            await db.schema.createTable('user_sessions', (table) => {
-                table.string('sid').notNullable().primary();
-                table.json('sess').notNullable();
-                table.timestamp('expire', { useTz: true }).notNullable();
-            });
-            console.log('Created "user_sessions" table');
-        }
+        // Note: user_sessions table removed as we're using in-memory sessions
 
         console.log('✅ Database schema is ready');
     } catch (error) {
