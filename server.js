@@ -116,7 +116,7 @@ app.post('/api/tickets', requireAuth, async (req, res) => {
     try {
         const { name, phone, amountPaid, customPrice, discountAmount, discountReason } = req.body;
         const standardPrice = 80000;
-        const finalPrice = customPrice || standardPrice;
+        const finalPrice = customPrice != null ? customPrice : standardPrice;
         const balance = Math.max(0, finalPrice - (amountPaid || 0));
         const id = uuidv4();
 
@@ -125,9 +125,9 @@ app.post('/api/tickets', requireAuth, async (req, res) => {
 
         database.tickets.create.run(
             id, name, phone, 
-            customPrice ? `Discounted UGX ${finalPrice.toLocaleString()}` : 'Standard UGX 80,000',
+            customPrice != null ? `Discounted UGX ${finalPrice.toLocaleString()}` : 'Standard UGX 80,000',
             standardPrice,
-            customPrice || null,
+            customPrice != null ? customPrice : null,
             discountAmount || 0,
             discountReason || '',
             amountPaid || 0,
