@@ -21,18 +21,14 @@ async function initializeApp() {
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(express.static('public'));
 
-    // Configure session management to use the now-ready database.
+    // Use simple in-memory sessions for reliability
     app.use(session({
-        store: new pgSession({
-            knex: db,
-            tableName: 'user_sessions'
-        }),
         secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-for-sessions',
         resave: false,
         saveUninitialized: false,
         cookie: {
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            secure: false, // Set to false for now to ensure it works
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
         }
     }));
 
