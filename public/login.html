@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Hijab Elegance Ticketing</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-background">
+            <div class="floating-elements">
+                <div class="floating-circle circle-1"></div>
+                <div class="floating-circle circle-2"></div>
+                <div class="floating-circle circle-3"></div>
+                <div class="floating-circle circle-4"></div>
+            </div>
+        </div>
+        
+        <div class="login-card">
+            <div class="login-header">
+                <div class="brand-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1>Salaam Safaris</h1>
+                        <p class="brand-subtitle">Premium Event Management</p>
+                    </div>
+                </div>
+                
+                <div class="event-info">
+                    <h2>Hijab Elegance Picnic 2025</h2>
+                    <p class="tagline">"Travel with Peace" ✨</p>
+                </div>
+            </div>
+            
+            <div class="login-content">
+                <div class="login-title">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>Admin Access</h3>
+                    <p>Secure dashboard login</p>
+                </div>
+                
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="Enter admin password" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-login">
+                        <span>Access Dashboard</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                    
+                    <div id="error-message" class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="error-text"></span>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="login-footer">
+                <div class="security-badge">
+                    <i class="fas fa-certificate"></i>
+                    <span>Secure & Encrypted</span>
+                </div>
+                <p class="copyright">© 2025 Salaam Safaris. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-message');
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    window.location.href = '/dashboard';
+                } else {
+                    const errorText = errorDiv.querySelector('.error-text');
+                    errorText.textContent = result.message || 'Invalid password';
+                    errorDiv.style.display = 'flex';
+                }
+            } catch (error) {
+                const errorText = errorDiv.querySelector('.error-text');
+                errorText.textContent = 'Login failed. Please try again.';
+                errorDiv.style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+</html>

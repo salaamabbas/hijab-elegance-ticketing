@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Ticket - Hijab Elegance Picnic</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="guest-container">
+        <div class="guest-background">
+            <div class="floating-elements">
+                <div class="floating-circle circle-1"></div>
+                <div class="floating-circle circle-2"></div>
+                <div class="floating-circle circle-3"></div>
+            </div>
+        </div>
+        
+        <div class="guest-card">
+            <div class="ticket-header">
+                <div class="brand-section">
+                    <div class="logo-icon">
+                        <i class="fas fa-mountain"></i>
+                    </div>
+                    <div class="brand-info">
+                        <h1>Salaam Safaris</h1>
+                        <p class="event-title">Hijab Elegance Picnic 2025</p>
+                        <p class="tagline">"Travel with Peace" ✨</p>
+                    </div>
+                </div>
+                <div class="ticket-badge">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Digital Ticket</span>
+                </div>
+            </div>
+
+            <div id="ticketInfo" class="ticket-info">
+                <!-- Ticket information will be loaded here -->
+            </div>
+
+            <div class="important-notices">
+                <div class="refund-policy">
+                    <div class="notice-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="notice-content">
+                        <h4>Important Policy</h4>
+                        <p><strong>Please note that all payments are non-refundable.</strong> Please ensure you can attend before purchasing.</p>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <div class="notice-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="notice-content">
+                        <h4>Event Instructions</h4>
+                        <ul>
+                            <li>Present this ticket at the entrance</li>
+                            <li>Arrive 30 minutes before event time</li>
+                            <li>Keep your phone charged for QR access</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-section">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="contact-details">
+                        <h4>Need Help?</h4>
+                        <p>Contact Salaam Safaris support</p>
+                        <p class="thank-you">Thank you for choosing us! 🌟</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get ticket ID from URL
+        const ticketId = window.location.pathname.split('/').pop();
+        
+        async function loadTicketInfo() {
+            try {
+                const response = await fetch(`/api/ticket/${ticketId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Ticket not found');
+                }
+                
+                const ticket = await response.json();
+                displayTicketInfo(ticket);
+            } catch (error) {
+                document.getElementById('ticketInfo').innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Ticket Not Found</h3>
+                        <p>The ticket you're looking for could not be found. Please check your QR code or contact the organizer.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayTicketInfo(ticket) {
+            const ticketInfoDiv = document.getElementById('ticketInfo');
+            
+            ticketInfoDiv.innerHTML = `
+                <div class="ticket-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Guest Name:</span>
+                        <span class="detail-value">${ticket.name}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Ticket Type:</span>
+                        <span class="detail-value">${ticket.ticketType}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Amount Paid:</span>
+                        <span class="detail-value">UGX ${ticket.amountPaid.toLocaleString()}</span>
+                    </div>
+                    <div class="detail-row ${ticket.balance > 0 ? 'balance-pending' : 'balance-complete'}">
+                        <span class="detail-label">Balance Remaining:</span>
+                        <span class="detail-value">UGX ${ticket.balance.toLocaleString()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">WhatsApp Number:</span>
+                        <span class="detail-value">${ticket.phone}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Check-in Status:</span>
+                        <span class="detail-value ${ticket.checkedIn ? 'checked-in' : 'not-checked-in'}">
+                            ${ticket.checkedIn ? '✅ Checked In' : '⏳ Not Checked In'}
+                        </span>
+                    </div>
+                </div>
+                
+                ${ticket.balance > 0 ? `
+                    <div class="balance-notice">
+                        <p><strong>💰 Payment Reminder:</strong></p>
+                        <p>You have a remaining balance of UGX ${ticket.balance.toLocaleString()}. Please complete your payment to secure your spot at the picnic.</p>
+                    </div>
+                ` : `
+                    <div class="payment-complete">
+                        <p><strong>✅ Payment Complete!</strong></p>
+                        <p>Thank you for your full payment. We look forward to seeing you at the picnic!</p>
+                    </div>
+                `}
+                
+                <div class="ticket-instructions">
+                    <p><strong>📝 Instructions:</strong></p>
+                    <ul>
+                        <li>Present this ticket (or QR code) at the entrance</li>
+                        <li>Arrive on time for a smooth check-in process</li>
+                        <li>Contact us if you have any questions</li>
+                    </ul>
+                </div>
+            `;
+        }
+        
+        // Auto-refresh ticket info every 30 seconds to show real-time updates
+        setInterval(loadTicketInfo, 30000);
+        
+        // Load ticket info on page load
+        loadTicketInfo();
+    </script>
+</body>
+</html>

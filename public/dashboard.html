@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hijab Elegance Ticketing</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // Debug jsPDF loading
+        window.addEventListener('load', function() {
+            console.log('jsPDF available:', typeof window.jspdf);
+            console.log('jsPDF global:', typeof jsPDF);
+            if (window.jspdf) {
+                console.log('jsPDF object:', window.jspdf);
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-background">
+                <div class="header-pattern"></div>
+            </div>
+            <div class="header-content">
+                <div class="brand-section">
+                    <div class="brand-logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-mountain"></i>
+                        </div>
+                        <div class="brand-info">
+                            <h1>Salaam Safaris</h1>
+                            <p class="event-title">Hijab Elegance Picnic 2025</p>
+                            <span class="tagline">"Travel with Peace" ✨</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="admin-info">
+                        <div class="admin-avatar">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="admin-details">
+                            <span class="welcome">Welcome back</span>
+                            <span class="admin-role">System Administrator</span>
+                        </div>
+                    </div>
+                    <button id="logoutBtn" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="dashboard-nav">
+            <div class="nav-container">
+                <div class="nav-tabs">
+                    <button class="nav-btn active" data-tab="summary">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Summary</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-btn" data-tab="tickets">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Tickets</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-btn" data-tab="financial">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Financial</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-btn" data-tab="reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                    <button class="nav-btn" data-tab="checkin">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Check-in</span>
+                        <div class="nav-indicator"></div>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="dashboard-main">
+            <!-- Summary Tab -->
+            <div id="summary-tab" class="tab-content active">
+                <div class="section-header">
+                    <h2>📊 Financial Overview</h2>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Total Revenue</span>
+                            <span class="summary-value" id="totalRevenue">UGX 0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Total Expenses</span>
+                            <span class="summary-value" id="totalExpenses">UGX 0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Profit</span>
+                            <span class="summary-value" id="profit">UGX 0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Money Available</span>
+                            <span class="summary-value" id="moneyAvailable">UGX 0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Tickets Sold</span>
+                            <span class="summary-value" id="ticketCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Checked In</span>
+                            <span class="summary-value" id="checkedInCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tickets Tab -->
+            <div id="tickets-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>Ticket Management</h2>
+                    <button id="addTicketBtn" class="btn btn-primary">Add New Ticket</button>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-input-group">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="ticketSearch" placeholder="Search by name, phone, or ticket ID..." class="search-input">
+                            <button id="clearSearch" class="clear-search-btn" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="search-filters">
+                            <select id="statusFilter" class="filter-select">
+                                <option value="all">All Status</option>
+                                <option value="paid">Fully Paid</option>
+                                <option value="pending">Pending Payment</option>
+                                <option value="checked-in">Checked In</option>
+                                <option value="not-checked-in">Not Checked In</option>
+                            </select>
+                            <select id="sortBy" class="filter-select">
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                                <option value="name">Name A-Z</option>
+                                <option value="balance">Balance High-Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="search-results-info">
+                        <span id="searchResultsCount"></span>
+                    </div>
+                </div>
+
+                <div class="tickets-grid">
+                    <div id="ticketsList" class="tickets-list">
+                        <!-- Tickets will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Tab -->
+            <div id="financial-tab" class="tab-content">
+                <div class="financial-sections">
+                    <!-- Expenses Section -->
+                    <div class="financial-section">
+                        <div class="section-header">
+                            <h3>💸 Expenses</h3>
+                            <button id="addExpenseBtn" class="btn btn-primary">Add Expense</button>
+                        </div>
+                        <div id="expensesList" class="financial-list">
+                            <!-- Expenses will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Sponsorships Section -->
+                    <div class="financial-section">
+                        <div class="section-header">
+                            <h3>🤝 Sponsorships</h3>
+                            <button id="addSponsorshipBtn" class="btn btn-primary">Add Sponsorship</button>
+                        </div>
+                        <div id="sponsorshipsList" class="financial-list">
+                            <!-- Sponsorships will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content">
+                <div class="reports-section">
+                    <h3>📊 Export Reports</h3>
+                    <div class="export-buttons">
+                        <button class="btn btn-primary" onclick="exportData('tickets')">Export Tickets</button>
+                        <button class="btn btn-primary" onclick="exportData('financial')">Export Financial Summary</button>
+                        <button class="btn btn-primary" onclick="exportData('attendance')">Export Attendance</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Tab -->
+            <div id="checkin-tab" class="tab-content">
+                <div class="checkin-section">
+                    <h3>✅ Guest Check-in</h3>
+                    <div class="search-section">
+                        <input type="text" id="searchTicket" placeholder="Search by name or phone number..." class="search-input">
+                        <button id="searchBtn" class="btn btn-primary">Search</button>
+                    </div>
+                    <div id="checkinResults" class="checkin-results">
+                        <!-- Search results will appear here -->
+                    </div>
+                </div>
+
+                <div class="checked-in-section">
+                    <h3>👥 Checked-in Guests</h3>
+                    <div class="checked-in-stats">
+                        <span id="checkedInCount">0 guests checked in</span>
+                    </div>
+                    <div id="checkedInList" class="checked-in-list">
+                        <!-- Checked-in guests will appear here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Add/Edit Ticket Modal -->
+    <div id="ticketModal" class="modal">
+        <div class="modal-content ticket-modal">
+            <div class="modal-header ticket-header">
+                <div class="header-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <div class="header-text">
+                    <h3 id="ticketModalTitle">Create New Ticket</h3>
+                    <p class="header-subtitle">Generate a professional ticket for your guest</p>
+                </div>
+                <span class="close">&times;</span>
+            </div>
+            <form id="ticketForm" class="professional-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticketName"><i class="fas fa-user"></i> Guest Name</label>
+                        <input type="text" id="ticketName" name="name" placeholder="Enter full name" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticketPhone"><i class="fas fa-phone"></i> WhatsApp/Phone Number</label>
+                        <input type="tel" id="ticketPhone" name="phone" placeholder="e.g., 0701234567" required>
+                        <small class="form-hint">Used for QR code access</small>
+                    </div>
+                </div>
+
+                <div class="pricing-section">
+                    <div class="price-display">
+                        <div class="standard-price">
+                            <span class="price-label">Standard Ticket Price</span>
+                            <span class="price-amount">UGX 80,000</span>
+                        </div>
+                    </div>
+
+                    <div class="form-row payment-row">
+                        <div class="form-group half-width">
+                            <label for="ticketAmountPaid"><i class="fas fa-money-bill-wave"></i> Amount Paid</label>
+                            <input type="number" id="ticketAmountPaid" name="amountPaid" min="0" max="80000" value="0" placeholder="0">
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="ticketBalance"><i class="fas fa-calculator"></i> Balance Remaining</label>
+                            <input type="number" id="ticketBalance" name="balance" min="0" placeholder="Enter balance manually">
+                        </div>
+                    </div>
+
+                    <div class="discount-section">
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="hasDiscount" onchange="toggleDiscountMode()">
+                                <span class="checkmark"></span>
+                                Apply discount or custom pricing
+                            </label>
+                        </div>
+                        <div id="discountFields" class="discount-fields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group half-width">
+                                    <label for="discountAmount"><i class="fas fa-percent"></i> Discount Amount</label>
+                                    <input type="number" id="discountAmount" name="discountAmount" min="0" max="80000" placeholder="0">
+                                </div>
+                                <div class="form-group half-width">
+                                    <label for="discountReason"><i class="fas fa-tag"></i> Reason</label>
+                                    <select id="discountReason" name="discountReason">
+                                        <option value="">Select reason</option>
+                                        <option value="Early Bird">Early Bird Discount</option>
+                                        <option value="Group Booking">Group Booking</option>
+                                        <option value="Student">Student Discount</option>
+                                        <option value="VIP">VIP Guest</option>
+                                        <option value="Sponsor">Sponsor/Partner</option>
+                                        <option value="Staff">Staff/Volunteer</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-create">
+                        <i class="fas fa-plus-circle"></i>
+                        Create Ticket
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('ticketModal')">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Expense Modal -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="expenseModalTitle">Add New Expense</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="expenseForm">
+                <div class="form-group">
+                    <label for="expenseCategory">Category:</label>
+                    <select id="expenseCategory" name="category" required>
+                        <option value="">Select Category</option>
+                        <option value="Food & Catering">Food & Catering</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Venue">Venue</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Decorations">Decorations</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Equipment">Equipment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDescription">Description:</label>
+                    <input type="text" id="expenseDescription" name="description" required>
+                </div>
+                <div class="form-group">
+                    <label for="expenseAmount">Amount (UGX):</label>
+                    <input type="number" id="expenseAmount" name="amount" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDate">Date:</label>
+                    <input type="date" id="expenseDate" name="date" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Expense</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('expenseModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add/Edit Sponsorship Modal -->
+    <div id="sponsorshipModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="sponsorshipModalTitle">Add New Sponsorship</h3>
+                <span class="close">&times;</span>
+            </div>
+            <form id="sponsorshipForm">
+                <div class="form-group">
+                    <label for="sponsorName">Sponsor Name:</label>
+                    <input type="text" id="sponsorName" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="sponsorAmount">Amount (UGX):</label>
+                    <input type="number" id="sponsorAmount" name="amount" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="sponsorDate">Date:</label>
+                    <input type="date" id="sponsorDate" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="sponsorNotes">Notes:</label>
+                    <textarea id="sponsorNotes" name="notes" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Sponsorship</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('sponsorshipModal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
