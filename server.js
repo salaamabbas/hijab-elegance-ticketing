@@ -29,7 +29,9 @@ app.use(session({
 console.log('🗃️  Using SQLite database for storage');
 
 // Default admin password (hashed)
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync('admin123', 10); // Change this in production
+// Use environment variable for password, with a default for local development
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
 
 // Authentication middleware
 const requireAuth = (req, res, next) => {
@@ -118,7 +120,7 @@ app.post('/api/tickets', requireAuth, async (req, res) => {
         const balance = Math.max(0, finalPrice - (amountPaid || 0));
         const id = uuidv4();
 
-        const qrData = `${req.protocol}://${req.get('host')}/guest/${id}`;
+        const qrData = `https://${req.get('host')}/guest/${id}`;
         const qrCode = await QRCode.toDataURL(qrData);
 
         database.tickets.create.run(
