@@ -83,7 +83,20 @@ async function initializeApp() {
     app.get('/api/tickets', requireAuth, async (req, res) => {
         try {
             const tickets = await db('tickets').select('*').orderBy('created_at', 'desc');
-            res.json({ tickets });
+            // Convert database field names to camelCase for frontend
+            const formattedTickets = tickets.map(ticket => ({
+                ...ticket,
+                amountPaid: ticket.amount_paid,
+                customPrice: ticket.custom_price,
+                discountAmount: ticket.discount_amount,
+                discountReason: ticket.discount_reason,
+                checkedIn: ticket.checked_in,
+                createdAt: ticket.created_at,
+                ticketType: ticket.ticket_type,
+                standardPrice: ticket.standard_price,
+                qrCode: ticket.qr_code
+            }));
+            res.json({ tickets: formattedTickets });
         } catch (error) {
             res.status(500).json({ error: 'Failed to get tickets' });
         }
@@ -110,7 +123,20 @@ async function initializeApp() {
             newTicket.qr_code = await QRCode.toDataURL(`https://${req.get('host')}/guest/${newTicket.id}`);
             
             const [insertedTicket] = await db('tickets').insert(newTicket).returning('*');
-            res.status(201).json(insertedTicket);
+            // Convert database field names to camelCase for frontend
+            const formattedTicket = {
+                ...insertedTicket,
+                amountPaid: insertedTicket.amount_paid,
+                customPrice: insertedTicket.custom_price,
+                discountAmount: insertedTicket.discount_amount,
+                discountReason: insertedTicket.discount_reason,
+                checkedIn: insertedTicket.checked_in,
+                createdAt: insertedTicket.created_at,
+                ticketType: insertedTicket.ticket_type,
+                standardPrice: insertedTicket.standard_price,
+                qrCode: insertedTicket.qr_code
+            };
+            res.status(201).json(formattedTicket);
         } catch (error) {
             console.error('Failed to create ticket:', error);
             res.status(500).json({ error: 'Failed to create ticket' });

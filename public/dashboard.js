@@ -481,11 +481,11 @@ function displayTickets(tickets) {
                     </div>
                     <div class="ticket-detail">
                         <span class="ticket-detail-label">Amount Paid:</span>
-                        <span class="ticket-detail-value">UGX ${ticket.amountPaid.toLocaleString()}</span>
+                        <span class="ticket-detail-value">UGX ${(ticket.amountPaid || 0).toLocaleString()}</span>
                     </div>
                     <div class="ticket-detail">
                         <span class="ticket-detail-label">Balance:</span>
-                        <span class="ticket-detail-value">UGX ${ticket.balance.toLocaleString()}</span>
+                        <span class="ticket-detail-value">UGX ${(ticket.balance || 0).toLocaleString()}</span>
                     </div>
                     <div class="ticket-detail">
                         <span class="ticket-detail-label">Check-in Status:</span>
