@@ -785,12 +785,36 @@ async function deleteTicket(ticketId) {
 
 async function checkInTicket(ticketId) {
     try {
-        const response = await fetch(`/api/tickets/${ticketId}/checkin`, {
+        // First get the current ticket data
+        const ticketsResponse = await fetch('/api/tickets');
+        if (!ticketsResponse.ok) {
+            throw new Error('Failed to fetch tickets');
+        }
+        
+        const data = await ticketsResponse.json();
+        const tickets = data.tickets || data;
+        const ticket = tickets.find(t => t.id === ticketId);
+        
+        if (!ticket) {
+            showMessage('Ticket not found', 'error');
+            return;
+        }
+        
+        // Update the ticket with check-in status
+        const response = await fetch(`/api/tickets/${ticketId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ checkedIn: true })
+            body: JSON.stringify({
+                name: ticket.name,
+                phone: ticket.phone,
+                amountPaid: ticket.amountPaid,
+                customPrice: ticket.customPrice,
+                discountAmount: ticket.discountAmount,
+                discountReason: ticket.discountReason,
+                checkedIn: true
+            })
         });
         
         if (response.ok) {
@@ -798,7 +822,8 @@ async function checkInTicket(ticketId) {
             loadFinancialSummary();
             showMessage('Guest checked in successfully!', 'success');
         } else {
-            showMessage('Failed to check in guest', 'error');
+            const errorData = await response.json();
+            showMessage(errorData.error || 'Failed to check in guest', 'error');
         }
     } catch (error) {
         console.error('Failed to check in guest:', error);
@@ -967,25 +992,70 @@ function generatePDF(ticket) {
     }
 }
 
-function viewQR(ticketId) {
-    fetch('/api/tickets')
-        .then(response => response.json())
-        .then(tickets => {
-            const ticket = tickets.find(t => t.id === ticketId);
-            if (ticket && ticket.qrCode) {
-                const newWindow = window.open('', '_blank');
+async function viewQR(ticketId) {
+    try {
+        const response = await fetch('/api/tickets');
+        if (!response.ok) {
+            throw new Error('Failed to fetch tickets');
+        }
+        
+        const data = await response.json();
+        const tickets = data.tickets || data; // Handle both response formats
+        const ticket = tickets.find(t => t.id === ticketId);
+        
+        if (ticket && ticket.qrCode) {
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
                 newWindow.document.write(`
                     <html>
-                        <head><title>QR Code - ${ticket.name}</title></head>
-                        <body style="text-align: center; font-family: Arial, sans-serif; padding: 20px;">
-                            <h2>QR Code for ${ticket.name}</h2>
-                            <img src="${ticket.qrCode}" alt="QR Code" style="max-width: 300px;">
-                            <p>Scan this code to view ticket details</p>
+                        <head>
+                            <title>QR Code - ${ticket.name}</title>
+                            <style>
+                                body { 
+                                    text-align: center; 
+                                    font-family: Arial, sans-serif; 
+                                    padding: 20px; 
+                                    background: #f5f5f5;
+                                }
+                                .qr-container {
+                                    background: white;
+                                    padding: 30px;
+                                    border-radius: 10px;
+                                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                                    display: inline-block;
+                                    margin: 20px;
+                                }
+                                img { 
+                                    max-width: 300px; 
+                                    border: 2px solid #ddd;
+                                    border-radius: 8px;
+                                }
+                                h2 { color: #333; margin-bottom: 20px; }
+                                p { color: #666; margin-top: 15px; }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="qr-container">
+                                <h2>QR Code for ${ticket.name}</h2>
+                                <img src="${ticket.qrCode}" alt="QR Code" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Y1ZjVmNSIvPjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5vIFFSIENvZGU8L3RleHQ+PC9zdmc+';">
+                                <p><strong>Ticket ID:</strong> ${ticket.id.slice(0, 8).toUpperCase()}</p>
+                                <p>Scan this code to view ticket details</p>
+                                <p style="font-size: 12px; color: #999;">Guest URL: ${window.location.origin}/guest/${ticket.id}</p>
+                            </div>
                         </body>
                     </html>
                 `);
+                newWindow.document.close();
+            } else {
+                showMessage('Popup blocked. Please allow popups and try again.', 'error');
             }
-        });
+        } else {
+            showMessage('QR code not found for this ticket', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to load QR code:', error);
+        showMessage('Failed to load QR code', 'error');
+    }
 }
 
 // Expenses Management
